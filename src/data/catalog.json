@@ -1,0 +1,65 @@
+[
+  {
+    "id": "masaje-relajante",
+    "name": "Masaje Relajante",
+    "description": "Masaje corporal completo con aceites esenciales para eliminar tensiones",
+    "duration_minutes": 60,
+    "price": 45
+  },
+  {
+    "id": "masaje-descontracturante",
+    "name": "Masaje Descontracturante",
+    "description": "Masaje profundo enfocado en nudos y contracturas musculares",
+    "duration_minutes": 60,
+    "price": 55
+  },
+  {
+    "id": "facial-hidratante",
+    "name": "Facial Hidratante",
+    "description": "Limpieza profunda e hidratación con productos naturales",
+    "duration_minutes": 45,
+    "price": 40
+  },
+  {
+    "id": "facial-antiage",
+    "name": "Facial Anti-Age",
+    "description": "Tratamiento revitalizante con colágeno y antioxidantes",
+    "duration_minutes": 60,
+    "price": 60
+  },
+  {
+    "id": "manicura",
+    "name": "Manicura Completa",
+    "description": "Corte y limado de uñas, cutículas y esmaltado",
+    "duration_minutes": 45,
+    "price": 25
+  },
+  {
+    "id": "pedicura",
+    "name": "Pedicura Completa",
+    "description": "Cuidado de pies con exfoliación y esmaltado",
+    "duration_minutes": 45,
+    "price": 30
+  },
+  {
+    "id": "exfoliacion-corporal",
+    "name": "Exfoliación Corporal",
+    "description": "Exfoliación de todo el cuerpo con sales marinas y aceites",
+    "duration_minutes": 50,
+    "price": 50
+  },
+  {
+    "id": "aromaterapia",
+    "name": "Sesión de Aromaterapia",
+    "description": "Experiencia sensorial con aceites esenciales y masaje suave",
+    "duration_minutes": 45,
+    "price": 40
+  },
+  {
+    "id": "paquete-bienestar",
+    "name": "Paquete Bienestar Completo",
+    "description": "Masaje relajante + facial hidratante + manicura",
+    "duration_minutes": 150,
+    "price": 95
+  }
+]
