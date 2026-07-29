@@ -1,0 +1,20 @@
+{
+  "name": "spa-bot",
+  "version": "1.0.0",
+  "description": "Bot de IA para spa con WhatsApp/Telegram y agenda",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "openai": "^4.86.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
