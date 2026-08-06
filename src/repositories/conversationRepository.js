@@ -1,19 +1,19 @@
 const { getDatabase } = require('../config/database');
 
-function addMessage(phone, role, content) {
+function addMessage(spaId, phone, role, content) {
   const db = getDatabase();
-  const stmt = db.prepare('INSERT INTO conversations (client_phone, role, content) VALUES (?, ?, ?)');
-  return stmt.run(phone, role, content);
+  const stmt = db.prepare('INSERT INTO conversations (spa_id, client_phone, role, content) VALUES (?, ?, ?, ?)');
+  return stmt.run(spaId, phone, role, content);
 }
 
-function getHistory(phone, limit = 10) {
+function getHistory(spaId, phone, limit = 10) {
   const db = getDatabase();
   return db.prepare(`
     SELECT role, content FROM conversations
-    WHERE client_phone = ?
+    WHERE spa_id = ? AND client_phone = ?
     ORDER BY created_at DESC
     LIMIT ?
-  `).all(phone, limit).reverse();
+  `).all(spaId, phone, limit).reverse();
 }
 
 function deleteOlderThan(days) {

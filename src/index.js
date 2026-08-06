@@ -7,6 +7,7 @@ const healthController = require('./controllers/healthController');
 const catalogController = require('./controllers/catalogController');
 const availabilityController = require('./controllers/availabilityController');
 const chatController = require('./controllers/chatController');
+const adminController = require('./controllers/adminController');
 
 const { getDatabase, closeDatabase } = require('./config/database');
 
@@ -43,6 +44,28 @@ app.get('/webhook/whatsapp', (req, res) => {
   }
   res.sendStatus(403);
 });
+
+app.get('/admin', (req, res) => {
+  res.sendFile('admin.html', { root: 'public' });
+});
+app.get('/api/admin/spas', requireAdmin, adminController.listSpas);
+app.get('/api/admin/spas/:id', requireAdmin, adminController.getSpa);
+app.post('/api/admin/spas', requireAdmin, adminController.createSpa);
+app.put('/api/admin/spas/:id', requireAdmin, adminController.updateSpa);
+app.get('/api/admin/appointments', requireAdmin, adminController.listAppointments);
+app.patch('/api/admin/appointments/:id', requireAdmin, adminController.updateAppointmentStatus);
+
+function requireAdmin(req, res, next) {
+  const expected = process.env.ADMIN_TOKEN;
+  if (!expected) {
+    return res.status(500).json({ error: 'ADMIN_TOKEN no configurado' });
+  }
+  const provided = req.headers['x-admin-token'];
+  if (provided !== expected) {
+    return res.status(403).json({ error: 'Token de administración inválido' });
+  }
+  next();
+}
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });

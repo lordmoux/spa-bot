@@ -1,4 +1,5 @@
 const calendarService = require('../services/calendarService');
+const spaRepository = require('../repositories/spaRepository');
 
 function availability(req, res) {
   const { date } = req.query;
@@ -12,13 +13,27 @@ function availability(req, res) {
     return res.status(400).json({ error: 'Formato de fecha inválido. Use YYYY-MM-DD' });
   }
 
-  const slots = calendarService.getAvailableSlots(date);
+  const spa = resolveSpa(req);
+  if (!spa) {
+    return res.status(404).json({ error: 'No hay spa configurado' });
+  }
+
+  const slots = calendarService.getAvailableSlots(spa, date);
 
   res.json({
+    spa_id: spa.id,
     date,
     slots,
     count: slots.length,
   });
+}
+
+function resolveSpa(req) {
+  const spaId = parseInt(req.query.spa_id, 10);
+  if (spaId) {
+    return spaRepository.findById(spaId);
+  }
+  return spaRepository.findFirstActive();
 }
 
 module.exports = { availability };

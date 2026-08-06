@@ -1,18 +1,25 @@
 const appointmentRepository = require('../repositories/appointmentRepository');
-const catalog = require('../data/catalog.json');
+const spaRepository = require('../repositories/spaRepository');
 
-const WORK_START = parseInt(process.env.WORK_START_HOUR, 10) || 9;
-const WORK_END = parseInt(process.env.WORK_END_HOUR, 10) || 18;
-
-function getServiceById(serviceId) {
-  return catalog.find(s => s.id === serviceId);
+function getServiceById(spa, serviceId) {
+  const catalog = spaRepository.toCatalog(spa);
+  return catalog.find(s => s.id === serviceId)
+    || catalog.find(s => normalizeId(s.id) === normalizeId(serviceId));
 }
 
-function generateSlots(date) {
-  const existing = appointmentRepository.findByDate(date);
+function isServiceValid(spa, serviceId) {
+  return getServiceById(spa, serviceId) !== undefined;
+}
+
+function normalizeId(id) {
+  return String(id || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function generateSlots(spa, date) {
+  const existing = appointmentRepository.findByDate(spa.id, date);
   const slots = [];
 
-  for (let hour = WORK_START; hour < WORK_END; hour++) {
+  for (let hour = spa.work_start_hour; hour < spa.work_end_hour; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
       const time = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
       if (!isSlotInPast(date, time)) {
@@ -37,8 +44,8 @@ function generateSlots(date) {
   return slots;
 }
 
-function getAvailableSlots(date) {
-  const slots = generateSlots(date);
+function getAvailableSlots(spa, date) {
+  const slots = generateSlots(spa, date);
   return slots.filter(s => s.available).map(s => s.time);
 }
 
@@ -55,13 +62,43 @@ function isSlotInPast(date, time) {
   return slotDate < now;
 }
 
-function isServiceValid(serviceId) {
-  return catalog.some(s => s.id === serviceId);
-}
-
-function isWithinBusinessHours(time) {
+function isWithinBusinessHours(spa, time) {
   const mins = timeToMinutes(time);
-  return mins >= WORK_START * 60 && mins <= WORK_END * 60;
+  return mins >= spa.work_start_hour * 60 && mins <= spa.work_end_hour * 60;
 }
 
-module.exports = { getServiceById, generateSlots, getAvailableSlots, isSlotInPast, isServiceValid, isWithinBusinessHours };
+function normalizeScheduleDate(date, time) {
+  let year, month, day;
+
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(date || ''));
+  const dmy = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(date || ''));
+  if (iso) {
+    [year, month, day] = [iso[1], iso[2], iso[3]];
+  } else if (dmy) {
+    [day, month, year] = [dmy[1], dmy[2], dmy[3]];
+  } else {
+    return null;
+  }
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+
+  if (Number(year) !== currentYear) {
+    year = String(currentYear);
+  }
+
+  const candidate = new Date(Number(year), Number(month) - 1, Number(day));
+  const slotDate = new Date(Number(year), Number(month) - 1, Number(day), time ? timeToMinutes(time) / 60 : 0, time ? timeToMinutes(time) % 60 : 0);
+
+  if (candidate.getFullYear() !== Number(year) || candidate.getMonth() !== Number(month) - 1 || candidate.getDate() !== Number(day)) {
+    return null;
+  }
+
+  if (slotDate <= now) {
+    return null;
+  }
+
+  return `${year}-${month}-${day}`;
+}
+
+module.exports = { getServiceById, generateSlots, getAvailableSlots, isSlotInPast, isServiceValid, isWithinBusinessHours, normalizeScheduleDate, normalizeId };

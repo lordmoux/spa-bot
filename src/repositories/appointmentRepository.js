@@ -1,23 +1,34 @@
 const { getDatabase } = require('../config/database');
 
-function create(data) {
+function create(spaId, data) {
   const db = getDatabase();
   const stmt = db.prepare(`
-    INSERT INTO appointments (client_name, client_phone, client_email, service_id, service_name, appointment_date, appointment_time, duration_minutes, notes)
-    VALUES (@client_name, @client_phone, @client_email, @service_id, @service_name, @appointment_date, @appointment_time, @duration_minutes, @notes)
+    INSERT INTO appointments (spa_id, client_name, client_phone, client_email, service_id, service_name, appointment_date, appointment_time, duration_minutes, notes)
+    VALUES (@spa_id, @client_name, @client_phone, @client_email, @service_id, @service_name, @appointment_date, @appointment_time, @duration_minutes, @notes)
   `);
-  const result = stmt.run(data);
+  const result = stmt.run({
+    spa_id: spaId,
+    client_name: data.client_name,
+    client_phone: data.client_phone,
+    client_email: data.client_email || null,
+    service_id: data.service_id,
+    service_name: data.service_name,
+    appointment_date: data.appointment_date,
+    appointment_time: data.appointment_time,
+    duration_minutes: data.duration_minutes,
+    notes: data.notes || null,
+  });
   return result.lastInsertRowid;
 }
 
-function findByPhone(phone) {
+function findByPhone(spaId, phone) {
   const db = getDatabase();
-  return db.prepare('SELECT * FROM appointments WHERE client_phone = ? ORDER BY appointment_date DESC, appointment_time DESC').all(phone);
+  return db.prepare('SELECT * FROM appointments WHERE spa_id = ? AND client_phone = ? ORDER BY appointment_date DESC, appointment_time DESC').all(spaId, phone);
 }
 
-function findByDate(date) {
+function findByDate(spaId, date) {
   const db = getDatabase();
-  return db.prepare('SELECT * FROM appointments WHERE appointment_date = ? ORDER BY appointment_time').all(date);
+  return db.prepare('SELECT * FROM appointments WHERE spa_id = ? AND appointment_date = ? ORDER BY appointment_time').all(spaId, date);
 }
 
 function findById(id) {
@@ -30,13 +41,13 @@ function updateStatus(id, status) {
   db.prepare("UPDATE appointments SET status = ?, updated_at = datetime('now') WHERE id = ?").run(status, id);
 }
 
-function findConflictingSlot(date, time, durationMinutes) {
+function findConflictingSlot(spaId, date, time, durationMinutes) {
   const db = getDatabase();
   const rows = db.prepare(`
     SELECT appointment_time, duration_minutes FROM appointments
-    WHERE appointment_date = ? AND status = 'confirmed'
+    WHERE spa_id = ? AND appointment_date = ? AND status = 'confirmed'
     ORDER BY appointment_time
-  `).all(date);
+  `).all(spaId, date);
 
   const requestedStart = timeToMinutes(time);
   const requestedEnd = requestedStart + durationMinutes;
